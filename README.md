@@ -12,6 +12,53 @@ RECONCILED  = the only success state
 
 This is **not** a payment gateway, not a PSP, and not authorised to collect money for third parties. It moves no money; it observes, records, matches and reports.
 
+[Visual demo](#visual-demo) · [Run locally](#quickstart) · [Lifecycle](#the-lifecycle) · [API reference](#api) · [Safety](#non-goals-and-safety)
+
+---
+
+## Visual demo
+
+Real screenshots of PayProof's server-rendered UI, captured from a local instance with an isolated in-memory database. Every order, alert, UTR and amount below is synthetic; **no real payment was made**. Credential fields are redacted in the dashboard capture. These are product screenshots, not design mockups or evidence of real bank settlement.
+
+### Merchant dashboard
+
+Create intents, simulate alerts, import a statement, and inspect the review queue from one screen. This capture shows one active order, one queued order, and one reconciled order. The one-paise-short alert stays in review instead of becoming success.
+
+[![PayProof merchant dashboard showing payment controls, a wrong-amount review, queued and active intents, and a reconciled sample order](docs/images/dashboard.png)](docs/images/dashboard.png)
+
+### Mobile checkout: evidence is not success
+
+The same **₹249.00 demo order** moves from `ACTIVE` to `OBSERVED` and then `RECONCILED`. A customer claim or bank alert alone is not enough to fulfil an order.
+
+<table>
+  <tr>
+    <th>1 · Active</th>
+    <th>2 · Observed</th>
+    <th>3 · Reconciled</th>
+  </tr>
+  <tr>
+    <td><a href="docs/images/checkout-active.png"><img src="docs/images/checkout-active.png" width="250" alt="Mobile PayProof checkout: active synthetic order for 249 rupees with demo QR and payment window"></a></td>
+    <td><a href="docs/images/checkout-observed.png"><img src="docs/images/checkout-observed.png" width="250" alt="Mobile PayProof checkout: bank alert observed, with a clear warning that payment is not settled yet"></a></td>
+    <td><a href="docs/images/checkout-reconciled.png"><img src="docs/images/checkout-reconciled.png" width="250" alt="Mobile PayProof checkout: sample statement matched and the order is reconciled"></a></td>
+  </tr>
+</table>
+
+The QR points to the seeded demo identity, `demo@payproof`. **Do not scan it to send money.** Run the simulator to explore the lifecycle safely. Click any screenshot to view it at full size.
+
+### Intent timeline and matched evidence
+
+The order history records each transition and its reason: `ACTIVE → OBSERVED → RECONCILED`. The evidence panel shows the synthetic alert reference, while the outbox records the resulting webhook deliveries.
+
+[![PayProof intent detail showing the recorded active, observed and reconciled transitions, synthetic alert evidence and delivered webhooks](docs/images/intent-timeline.png)](docs/images/intent-timeline.png)
+
+### Reconciliation, balanced ledger and signed webhooks
+
+Matching the sample statement's **UTR + exact amount** produces one reconciled payment, a **₹249.00 debit and ₹249.00 credit**, and a `payment.reconciled` webhook. The local receiver verifies the HMAC signature; `DELIVERED` is recorded by the outbox.
+
+[![PayProof reconciliation report with a balanced 249-rupee debit and credit, delivered webhook events and verified receiver signatures](docs/images/reconciliation.png)](docs/images/reconciliation.png)
+
+To reproduce the core flow, run `npm run demo` and open <http://127.0.0.1:4100/>. The [quickstart](#quickstart) explains the requirements. Screenshots are a point-in-time demo; the code and tests are the source of truth.
+
 ---
 
 ## Why this exists
